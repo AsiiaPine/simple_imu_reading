@@ -50,6 +50,7 @@ async def read_serial_and_post_to_redis():
             await broker.publish(log_message_channel, message_str)
             serialPort.close()
             open_serial_port()
+            
 
 if __name__ == "__main__":
     redis_ = aioredis.from_url("redis://localhost:6379/0")

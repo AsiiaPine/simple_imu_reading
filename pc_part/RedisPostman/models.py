@@ -78,10 +78,10 @@ class IMU9250Message(IMUMessage):
 
 @dataclass
 class Quaternion(Message):
-    q0 :float
-    q1 :float
-    q2 :float
-    q3 :float
+    q0: float
+    q1: float
+    q2: float
+    q3: float
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]):
@@ -92,7 +92,7 @@ class Quaternion(Message):
         return cls(q0=q0, q1=q1, q2=q2, q3=q3)
 
     def to_dict(self) -> dict:
-        data = {"q0": self.q0,"q1": self.q1, "q2": self.q2, "q3": self.q3}
+        data = {"q0": self.q0, "q1": self.q1, "q2": self.q2, "q3": self.q3}
         return data
 
 
@@ -110,29 +110,26 @@ class Roll_pitch_yaw(Message):
         return cls(roll=roll, pitch=pitch, yaw=yaw)
 
     def to_dict(self) -> dict:
-        data = {"yaw": self.yaw, "pitch": self.pitch,
-                "roll": self.roll}
+        data = {"yaw": self.yaw, "pitch": self.pitch, "roll": self.roll}
         return data
-
-
 
 
 def dump_clean(obj, s="") -> str:
     if isinstance(obj, dict):
         for k, v in obj.items():
-            if hasattr(v, '__iter__'):
-                s += '\n' + k + ':\n'
+            if hasattr(v, "__iter__"):
+                s += "\n" + k + ":\n"
                 s = dump_clean(v, s)
             else:
-                s += '%s : %s' % (k, v) + '\n'
+                s += "%s : %s" % (k, v) + "\n"
     elif isinstance(obj, list):
         for v in obj:
-            if hasattr(v, '__iter__'):
+            if hasattr(v, "__iter__"):
                 s = dump_clean(v, s)
             else:
-                s += v + '\n'
+                s += v + "\n"
     else:
-        s += obj + '\n'
+        s += obj + "\n"
     return s
 
 
@@ -142,15 +139,15 @@ class LogMessage(Message):
     process_name: str
     status: dict[str, Any]
 
-    date_format = '%m/%d/%Y\t%H:%M:%S'
+    date_format = "%m/%d/%Y\t%H:%M:%S"
 
     @staticmethod
     def exception_to_dict(exception: Exception) -> dict[str, Any]:
         exception_dict = {
-            'type': type(exception).__name__,
-            'message': str(exception),
-            'args': str(exception.args),
-            'traceback': traceback.format_exc()
+            "type": type(exception).__name__,
+            "message": str(exception),
+            "args": str(exception.args),
+            "traceback": traceback.format_exc(),
         }
         return exception_dict
 
@@ -175,4 +172,4 @@ class LogMessage(Message):
         return data
 
     def __str__(self) -> str:
-        return f'{self.date}\t{self.process_name}' + dump_clean(self.status)
+        return f"{self.date}\t{self.process_name}" + dump_clean(self.status)
