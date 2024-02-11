@@ -19,6 +19,7 @@ times = []
 input_array = []
 start_time = time.time()
 
+# since there are two types for messages, use the reader function
 def read_mpu9250_data(message: IMU9250Message) -> dict[str, np.ndarray]:
     return {"acc": message.imu.acc, "gyr": message.imu.gyr, "mag": message.imu.mag}
 
@@ -26,7 +27,7 @@ def read_mpu6500_data(message: IMUMessage) -> dict[str, np.ndarray]:
     return {"acc": message.imu.acc, "gyr": message.imu.gyr, "mag": None}
 
 
-async def visualize_imu(reader: Callable,  channel: str, dataClass: type[Message], fig, axs):
+async def visualize_graph(reader: Callable,  channel: str, dataClass: type[Message], fig, axs):
     """
     Generalized function for plotting the data from IMU, all possible options listed in reader_options.py
     """
@@ -62,4 +63,4 @@ async def visualize_imu(reader: Callable,  channel: str, dataClass: type[Message
 if __name__ == '__main__':
     fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(18 * 2, 6 * 3))
 
-    asyncio.run(visualize_imu(reader=read_mpu9250_data, channel=imu_data_channel, dataClass=IMU9250Message, fig=fig, axs=axs))
+    asyncio.run(visualize_graph(reader=read_mpu9250_data, channel=imu_data_channel, dataClass=IMU9250Message, fig=fig, axs=axs))

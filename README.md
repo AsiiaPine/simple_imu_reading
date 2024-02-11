@@ -13,7 +13,9 @@ The repository comtains everything for IMU data reading via micropython firmware
     - [Via python script](#via-python-script)
   - [Code part ](#code-part-)
     - [Calibration](#calibration)
-    - [IMU data reading](#imu-data-reading)
+- [PC part](#pc-part-1)
+  - [IMU data reading](#imu-data-reading)
+  - [Data visualization](#data-visualization)
 
 
 # Install python packages <a name="install_env"></a>
@@ -130,7 +132,10 @@ sensor.ak8963._scale = ...
 # start data reading
 ```
 
-### IMU data reading
+# PC part
+
+
+## IMU data reading
 
 example for data reading:
 ```
@@ -148,5 +153,15 @@ while True:
     print(json.dumps(data))
     utime.sleep_ms(1000)
 ```
+
+>The simplest example contains in [IMU_serial_reading_to_csv.py](pc_part/IMU_serial_reading_to_csv.py). We collect data from the */dev/ttyUSB0* port and then writes it to .csv file for further exploration.
+
+## Data visualization
+
+It is almost impossible to check if the sensor works correctly without visualization, therefore 
+
+Problems with the solution:
+The data buffer of the serial port use queue to store data, therefore if
+
 
 

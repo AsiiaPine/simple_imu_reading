@@ -76,6 +76,46 @@ class IMU9250Message(IMUMessage):
         return data
 
 
+@dataclass
+class Quaternion(Message):
+    q0 :float
+    q1 :float
+    q2 :float
+    q3 :float
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]):
+        q0 = data["q0"]
+        q1 = data["q1"]
+        q2 = data["q2"]
+        q3 = data["q3"]
+        return cls(q0=q0, q1=q1, q2=q2, q3=q3)
+
+    def to_dict(self) -> dict:
+        data = {"q0": self.q0,"q1": self.q1, "q2": self.q2, "q3": self.q3}
+        return data
+
+
+@dataclass
+class Roll_pitch_yaw(Message):
+    roll: float
+    pitch: float
+    yaw: float
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]):
+        roll = data["roll"]
+        pitch = data["pitch"]
+        yaw = data["yaw"]
+        return cls(roll=roll, pitch=pitch, yaw=yaw)
+
+    def to_dict(self) -> dict:
+        data = {"yaw": self.yaw, "pitch": self.pitch,
+                "roll": self.roll}
+        return data
+
+
+
 
 def dump_clean(obj, s="") -> str:
     if isinstance(obj, dict):
