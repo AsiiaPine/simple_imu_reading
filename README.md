@@ -7,16 +7,21 @@ The repository comtains everything for IMU data reading via micropython firmware
   - [Flash the firmware ](#flash-the-firmware-)
     - [Micropython Installation instructions ](#micropython-installation-instructions-)
     - [Program uploading instruction ](#program-uploading-instruction-)
+- [PC part](#pc-part)
   - [Read messages from USB device:](#read-messages-from-usb-device)
-  - [Code](#code)
+    - [Via picocom](#via-picocom)
+    - [Via python script](#via-python-script)
+  - [Code part ](#code-part-)
+    - [Calibration](#calibration)
+    - [IMU data reading](#imu-data-reading)
 
 
 # Install python packages <a name="install_env"></a>
-Create python environment with all dependencies:
+Create python environment with all dependencies and activate it:
 
 ```
-python -m venv_name /path_to_new_virtual_environment
-source /path_to_new_virtual_environment/venv_name/bin/activate  
+python -m venv /venv
+source /venv/bin/activate  
 pip install -r requirements.txt
 ```
 
@@ -26,22 +31,39 @@ Remember that the program entry point is [main.py](esp32_part/main.py)
 
 ## Flash the firmware <a name="esp_flash"></a>
 ### Micropython Installation instructions <a name="micropython_flash"></a>
-Program your board using the esptool program, found [here](https://micropython.org/download/ESP32_GENERIC/).
 
 If you are putting MicroPython on your board for the first time then you should first erase the entire flash using:
 
+Check the port connected to the device:
+
 ```
-esptool.py --chip esp32 --port /dev/ttyUSB0 erase_flash
+ld /dev/ttyUSB*
 ```
+
+```
+esptool.py --chip esp32 --port /dev/ttyUSBn erase_flash
+```
+
+Then upload the needed micropython firmware [instruction](https://learn.sparkfun.com/tutorials/micropython-programming-tutorial-getting-started-with-the-esp32-thing/experiment-1-digital-input-and-output)  all available firmware is [here](https://micropython.org/download/ESP32_GENERIC/).
+
+```
+esptool.py --chip esp32 --port /dev/ttyUSB0 --baud 460800 write_flash -z 0x1000 FIRMWARE.bin  
+```
+
+
 <!-- From then on program the firmware starting at address 0x1000: -->
 ### Program uploading instruction <a name="esp_upload"></a>
 Load the program via the instruction:
 ```
-ampy --port /dev/ttyUSB0 put esp32_part/
+ampy --port /dev/ttyUSBn put esp32_part/main.py
+ampy --port /dev/ttyUSBn put esp32_part/micropython_mpu9250
 ```
 
 
+# PC part
 ## Read messages from USB device:
+
+### Via picocom
 
 Install picocom
 ```
@@ -57,9 +79,74 @@ Use the port name when start reading data via picocom. Use default baudrate with
  sudo picocom /dev/ttyUSBn -b 115200
 ```
 
-## Code 
+### Via python script
 
-example with sensor calibration:
+```
+sudo python pc_part/IMU_serial_reading.py 
+```
 
+## Code part <a name="code_esp"></a>
+All the code is stored in [esp32_part](esp32_part) 
+Remember that the program entry point is [main.py](esp32_part/main.py)
+
+### Calibration
+To calibrate sensor, use the calibration function for gyroscope and magnetometer.
+
+```
+sensor = MPU9250(i2c)
+
+sensor.ak8963.calibrate()
+sensor.mpu6500.calibrate()
+```
+main.py example with sensor calibration:
+```
+import utime
+from machine import I2C, Pin
+from micropython_mpu9250.mpu9250 import MPU9250
+import json
+i2c = I2C(scl=Pin(22), sda=Pin(21))
+sensor = MPU9250(i2c)
+
+print("MPU9250 id: " + hex(sensor.whoami))
+
+sensor.ak8963.calibrate()
+sensor.mpu6500.calibrate()
+print("Calibration complete")
+while True:
+    print("Gyro offset", sensor.mpu6500._gyro_offset)
+    print("Mag offset", sensor.ak8963._offset)
+    print("Mag scale", sensor.ak8963._scale)
+    utime.sleep_ms(1000)
+```
+Store the results and use them later after sensor initialization:
+
+```
+sensor = MPU9250(i2c)
+
+sensor.mpu6500._gyro_offset = ...
+sensor.ak8963._offset = ...
+sensor.ak8963._scale = ...
+
+# start data reading
+```
+
+### IMU data reading
+
+example for data reading:
+```
+import utime
+from machine import I2C, Pin
+from micropython_mpu9250.mpu9250 import MPU9250
+import json
+i2c = I2C(scl=Pin(22), sda=Pin(21))
+sensor = MPU9250(i2c)
+
+print("MPU9250 id: " + hex(sensor.whoami))
+
+while True:
+    data = {"acc": sensor.acceleration, "gyr": sensor.gyro, "mag": sensor.magnetic, "tem": sensor.temperature}
+    print(json.dumps(data))
+    utime.sleep_ms(1000)
+```
 
 
