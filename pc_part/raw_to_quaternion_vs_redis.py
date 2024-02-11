@@ -6,7 +6,7 @@ from RedisPostman.models import (
     IMUMessage,
     Quaternion,
 )
-from config import log_message_channel, raw_to_quaternion_channel, imu_data_channel
+from config import log_message_channel, quaternion_channel, imu_data_channel
 from RedisPostman.RedisWorker import AsyncRedisWorker
 
 from ahrs.filters import Madgwick
@@ -37,7 +37,7 @@ def read_mpu6500_data(message: IMUMessage) -> dict[str, np.ndarray]:
     return {"acc": message.imu.acc, "gyr": message.imu.gyr, "mag": None}
 
 
-async def visualize_graph(reader: Callable, dataClass: type[Message], q: np.ndarray):
+async def calculate_quaternion(reader: Callable, dataClass: type[Message], q: np.ndarray):
     """
     Generalized function for plotting the data from IMU, all possible options listed in reader_options.py
     """
@@ -65,7 +65,7 @@ async def visualize_graph(reader: Callable, dataClass: type[Message], q: np.ndar
                 )
                 q = quaternion
                 await worker.broker.publish(
-                    raw_to_quaternion_channel, json.dumps(quaternion_msg.to_dict())
+                    quaternion_channel, json.dumps(quaternion_msg.to_dict())
                 )
 
             except Exception as e:
@@ -83,5 +83,5 @@ if __name__ == "__main__":
     Q = np.array([1.0, 0.0, 0.0, 0.0])
 
     asyncio.run(
-        visualize_graph(reader=read_mpu9250_data, dataClass=IMU9250Message, q=Q)
+        calculate_quaternion(reader=read_mpu9250_data, dataClass=IMU9250Message, q=Q)
     )
