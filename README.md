@@ -13,9 +13,13 @@ The repository comtains everything for IMU data reading via micropython firmware
     - [Via python script](#via-python-script)
   - [Code part ](#code-part-)
     - [Calibration](#calibration)
-- [PC part](#pc-part-1)
   - [IMU data reading](#imu-data-reading)
+- [PC part](#pc-part-1)
   - [Data visualization](#data-visualization)
+    - [Why do we use Redis?](#why-do-we-use-redis)
+    - [Now we can allow us to work with pitch-yaw-roll](#now-we-can-allow-us-to-work-with-pitch-yaw-roll)
+  - [Redis workflow structure](#redis-workflow-structure)
+- [3D visualization](#3d-visualization)
 
 
 # Install python packages <a name="install_env"></a>
@@ -132,7 +136,6 @@ sensor.ak8963._scale = ...
 # start data reading
 ```
 
-# PC part
 
 
 ## IMU data reading
@@ -153,15 +156,56 @@ while True:
     print(json.dumps(data))
     utime.sleep_ms(1000)
 ```
+# PC part
+==To start the code on ESP, open the port via picocom and press *Ctrl+d*==
 
->The simplest example contains in [IMU_serial_reading_to_csv.py](pc_part/IMU_serial_reading_to_csv.py). We collect data from the */dev/ttyUSB0* port and then writes it to .csv file for further exploration.
+>The simplest example contains in [simple_serial_reading_to_csv.py](pc_part/simple_serial_reading_to_csv.py). We collect data from the */dev/ttyUSB0* port and then writes it to .csv file for further exploration.
+
 
 ## Data visualization
 
-It is almost impossible to check if the sensor works correctly without visualization, therefore 
+It is almost impossible to check if the sensor works correctly without visualization, therefore lets start with graphs.
 
-Problems with the solution:
-The data buffer of the serial port use queue to store data, therefore if
+The base for graph plotting script: [simple_visualize_graph.py](pc_part/simple_visualize_graph.py).
+![Alt text](./figs/2d_graphpng.png)
 
+###  Why do we use Redis?
+The data buffer of the serial port use queue to store data, therefore (since the Matplotlib is slow) the visualization will have a growing delay. So, in several seconds it will be hard to map the graph with real inertia of IMU.
 
+***So, now we will use Redis.!.***
 
+***[Redis installation guide](https://redis.io/docs/install/install-redis/install-redis-on-linux/)***
+
+After installation you are ready to start redis service:
+```
+sudo systemctl start redis
+```
+
+Updated version of graph plotting script: [visualize_graphs_vs_redis.py](pc_part/visualize_graphs_vs_redis.py).
+
+So, to start *reading* the data from IMU and store it to Redis, run the script:
+Terminal 1:
+```
+sudo python pc_part/read_serial_vs_redis.py
+```
+Open the new terminal and run the *visualization* script:
+Terminal 2:
+```
+sudo python pc_part/visualize_graphs_vs_redis.py
+```
+![Alt text](./figs/2d_graphpng.png)
+Also, we can speed up calculations, because of splitting up it to several processes.
+
+### Now we can allow us to work with pitch-yaw-roll
+
+## Redis workflow structure
+
+![Alt text](./figs/redis_structure.svg)
+
+# 3D visualization
+Terminal 4:
+```
+sudo python pc_part/3d_visualization_vs_redis.py
+```
+***The visualization works if it runs via Debugger. I know, I know, vpython sucks. But easy <3***
+![Alt text](./figs/3d_visualization.png)
