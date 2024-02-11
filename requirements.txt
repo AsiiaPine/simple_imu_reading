@@ -1,0 +1,8 @@
+adafruit-ampy
+esptool
+setuptools
+pyserial
+pandas
+matplotlib
+numpy
+pyarrow
