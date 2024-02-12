@@ -40,8 +40,11 @@ try:
 except:
     # what to do at KeyboardInterrupt
     serialPort.close()  # close port
-    a = np.asarray(input_array)
     df = pd.DataFrame.from_records(input_array, columns=headers)
-    for key in headers:
-        df[key] = df[key].apply(lambda x: np.array(x))
-    df.to_csv("imu_results.csv", index=False, header=True)    # np.savetxt("imu_results.csv", a, delimiter=";", header=";".join(headers))
+    # for key in headers:
+    #     # df[key].apply(lambda r: tuple(r))
+    #     df[key] = df[key].apply(lambda x: np.array(x))
+        
+    df.to_csv("imu_results.csv", index=False, header=True, sep=";")    
+    # a = np.asarray(input_array)
+    # np.savetxt("imu_results.csv", a, delimiter=";", header=";".join(headers))
